@@ -1,13 +1,15 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 
 import CartItem from "./CartItem.js";
 import Card from "../UI/Card/Card";
 import Modal from "../UI/Modal/Modal.js";
 import CartContext from "../../store/cart-context.js";
+import CartForm from "./CartForm.js";
 
 import classes from "./Cart.module.css";
 
 function Cart(props) {
+  const [formIsOpen, setFormIsOpen] = useState(false);
   const ctx = useContext(CartContext);
 
   const totalAmount = ctx.totalAmount.toFixed(2);
@@ -19,6 +21,10 @@ function Cart(props) {
   const cartItemRemoveHandler = (id) => {
     console.log(id);
     ctx.removeItem(id);
+  };
+
+  const cartFormHandler = () => {
+    setFormIsOpen(true);
   };
 
   const cartItem = [...ctx.items].map((item) => {
@@ -45,16 +51,23 @@ function Cart(props) {
           <h2>Total amount</h2>
           <span>${totalAmount}</span>
         </div>
-        <div className={classes.actions}>
-          <button
-            type="button"
-            onClick={props.onClose}
-            className={classes["button-alt"]}
-          >
-            Close
-          </button>
-          {hasItems && <button className={classes.button}>Order</button>}
-        </div>
+        {formIsOpen && <CartForm onCancel={props.onClose} />}
+        {!formIsOpen && (
+          <div className={classes.actions}>
+            <button
+              type="button"
+              onClick={props.onClose}
+              className={classes["button-alt"]}
+            >
+              Close
+            </button>
+            {hasItems && (
+              <button onClick={cartFormHandler} className={classes.button}>
+                Order
+              </button>
+            )}
+          </div>
+        )}
       </Card>
     </Modal>
   );
