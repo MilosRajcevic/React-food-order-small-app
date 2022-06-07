@@ -1,43 +1,50 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import classes from "./AvailableMeals.module.css";
 import MealItem from "./MealItem/MealItem";
 import Card from "../UI/Card/Card";
 
-const DUMMY_MEALS = [
-  {
-    id: "m1",
-    name: "Sushi",
-    description: "Finest fish and veggies",
-    price: 22.99,
-  },
-  {
-    id: "m2",
-    name: "Schnitzel",
-    description: "A german specialty!",
-    price: 16.5,
-  },
-  {
-    id: "m3",
-    name: "Barbecue Burger",
-    description: "American, raw, meaty",
-    price: 12.99,
-  },
-  {
-    id: "m4",
-    name: "Green Bowl",
-    description: "Healthy...and green...",
-    price: 18.99,
-  },
-];
+import useFetch from "../Hooks/use-fetch";
 
 function AvailableMeals() {
+  const [meals, setMeals] = useState([]);
+
+  const { isLoading, error, sendRequest: fetchMeals } = useFetch();
+
+  useEffect(() => {
+    const takeMealsHandler = (taskObj) => {
+      const loadedMeals = [];
+
+      for (const taskKey in taskObj) {
+        loadedMeals.push({
+          id: taskKey,
+          description: taskObj[taskKey].description,
+          price: taskObj[taskKey].price,
+          name: taskObj[taskKey].name,
+        });
+      }
+      setMeals(loadedMeals);
+    };
+
+    fetchMeals(
+      {
+        url: "https://react-http-6bf30-default-rtdb.firebaseio.com/melas.json",
+      },
+      takeMealsHandler
+    );
+  }, [fetchMeals]);
+
+  let content = <MealItem meals={meals} />;
+
+  if (isLoading)
+    content = <p className={classes.meals__loading}>Loading meals...</p>;
+
+  if (error) content = <p>Something went wrong, refresh page!</p>;
+
   return (
     <section className={classes.meals}>
       <Card>
-        <ul>
-          <MealItem meals={DUMMY_MEALS} />
-        </ul>
+        <ul>{content}</ul>
       </Card>
     </section>
   );
