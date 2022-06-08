@@ -68,7 +68,7 @@ function CartForm(props) {
     : `${classes.control}`;
 
   const confirmHandler = (event) => {
-    event.prevenDefault();
+    event.preventDefault();
 
     if (
       !enteredNameIsValid &&
@@ -82,6 +82,13 @@ function CartForm(props) {
     streetResetHandler();
     postalCodeResetHandler();
     cityResetHandler();
+
+    props.onConfirm({
+      name: enteredName,
+      street: enteredCity,
+      postalcode: enteredPostalCode,
+      city: enteredCity,
+    });
   };
 
   return (

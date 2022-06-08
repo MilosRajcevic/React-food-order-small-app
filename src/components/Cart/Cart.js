@@ -5,11 +5,16 @@ import Card from "../UI/Card/Card";
 import Modal from "../UI/Modal/Modal.js";
 import CartContext from "../../store/cart-context.js";
 import CartForm from "./CartForm.js";
+import useFetch from "../Hooks/use-fetch.js";
 
 import classes from "./Cart.module.css";
 
 function Cart(props) {
   const [formIsOpen, setFormIsOpen] = useState(false);
+  const [isSubmit, setIsSubmit] = useState(false);
+
+  const { isLoading, error, sendRequest: sentOrder } = useFetch();
+
   const ctx = useContext(CartContext);
 
   const totalAmount = ctx.totalAmount.toFixed(2);
@@ -19,12 +24,23 @@ function Cart(props) {
   };
 
   const cartItemRemoveHandler = (id) => {
-    console.log(id);
     ctx.removeItem(id);
   };
 
   const cartFormHandler = () => {
     setFormIsOpen(true);
+  };
+
+  const submitOrderHandler = async (userData) => {
+    setIsSubmit(false);
+    await sentOrder({
+      url: "https://react-http-6bf30-default-rtdb.firebaseio.com/orders.json",
+      method: "POST",
+      body: { user: userData, orderItems: ctx.items },
+    });
+
+    setIsSubmit(true);
+    ctx.clearCart();
   };
 
   const cartItem = [...ctx.items].map((item) => {
@@ -43,32 +59,62 @@ function Cart(props) {
 
   const hasItems = ctx.items.length > 0;
 
+  const modalActions = (
+    <div className={classes.actions}>
+      <button
+        type="button"
+        onClick={props.onClose}
+        className={classes["button-alt"]}
+      >
+        Close
+      </button>
+      {hasItems && (
+        <button onClick={cartFormHandler} className={classes.button}>
+          Order
+        </button>
+      )}
+    </div>
+  );
+
+  const cartModalContnet = (
+    <Card>
+      <ul>{cartItem}</ul>
+      <div className={classes.total}>
+        <h2>Total amount</h2>
+        <span>${totalAmount}</span>
+      </div>
+      {formIsOpen && (
+        <CartForm onConfirm={submitOrderHandler} onCancel={props.onClose} />
+      )}
+      {!formIsOpen && modalActions}
+    </Card>
+  );
+
+  let modalContent = cartModalContnet;
+
+  if (error) modalContent = <p>We have some problems, try again!</p>;
+
+  if (isLoading) modalContent = <p>Sending order data...</p>;
+
+  if (!error && isSubmit)
+    modalContent = (
+      <React.Fragment>
+        <p>Succesufully sent the order!</p>
+        <div className={classes.actions}>
+          <button
+            type="button"
+            onClick={props.onClose}
+            className={classes.button}
+          >
+            Close
+          </button>
+        </div>
+      </React.Fragment>
+    );
+
   return (
     <Modal onClose={props.onClose} className={classes["cart-items"]}>
-      <Card>
-        <ul>{cartItem}</ul>
-        <div className={classes.total}>
-          <h2>Total amount</h2>
-          <span>${totalAmount}</span>
-        </div>
-        {formIsOpen && <CartForm onCancel={props.onClose} />}
-        {!formIsOpen && (
-          <div className={classes.actions}>
-            <button
-              type="button"
-              onClick={props.onClose}
-              className={classes["button-alt"]}
-            >
-              Close
-            </button>
-            {hasItems && (
-              <button onClick={cartFormHandler} className={classes.button}>
-                Order
-              </button>
-            )}
-          </div>
-        )}
-      </Card>
+      {modalContent}
     </Modal>
   );
 }

@@ -21,10 +21,11 @@ function useFetch() {
 
       const data = await response.json();
 
+      if (!fetchDataTask) return;
+
       fetchDataTask(data);
     } catch (err) {
-      setError(err.message || "Something went wrong!💥💥💥");
-      console.log(err);
+      setError(err.message);
     }
     setIsLoading(false);
   }, []);
