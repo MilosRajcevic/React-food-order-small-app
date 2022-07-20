@@ -28,7 +28,7 @@ function AvailableMeals() {
 
     fetchMeals(
       {
-        url: "https://react-http-6bf30-default-rtdb.firebaseio.com/melas.json",
+        url: "https://hoisting-test-8cd02-default-rtdb.firebaseio.com/meals.json",
       },
       takeMealsHandler
     );
